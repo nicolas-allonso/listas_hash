@@ -3,11 +3,13 @@ import java.util.Random;
 class tabelaHashEcd {
 	
 	No[] tabela;
+    int[] ultimosValores = new int[3];
+    int quantidadeUltimos = 0;
 	
 	class No {
 
 		int chave;
-        No[] proximo;
+        No proximo;
 		
 		public No(int chave) {
 			this.chave = chave;
@@ -17,7 +19,7 @@ class tabelaHashEcd {
             this.chave = chave;
         }
 
-        void mudarProximo(No[] proximo) {
+        void mudarProximo(No proximo) {
             this.proximo = proximo;
         }
 
@@ -41,32 +43,32 @@ class tabelaHashEcd {
 	void insereEcd(int chave) {
 		
         int i = funcaoHash(chave);
-        No[] novoProximo;
 
 		if (tabela[i].chave != -1) {
-            if (tabela[i].proximo != null) {
-                No insercao = new No(chave);
-                novoProximo = new No[tabela[i].proximo.length + 1];
-                int indiceInsercao = 0;
-
-                for (int j = 0; j < tabela[i].proximo.length && tabela[i].proximo[j].chave < chave; j++) {
-                    novoProximo[j] = tabela[i].proximo[j];
-                    indiceInsercao++;
-                }
-
-                novoProximo[indiceInsercao] = insercao;
-                indiceInsercao++;
-
-                for (int k = indiceInsercao; k < novoProximo.length; k++) {
-                    novoProximo[k] = tabela[i].proximo[k - 1];
-                }
-                
+            if (quantidadeUltimos < 3) {
+                ultimosValores[quantidadeUltimos] = chave;
+                quantidadeUltimos++;
             } else {
-                novoProximo = new No[1];
-                novoProximo[0] = new No(chave);
+                ultimosValores[0] = ultimosValores[1];
+                ultimosValores[1] = ultimosValores[2];
+                ultimosValores[2] = chave;
             }
-            
-            tabela[i].mudarProximo(novoProximo);
+
+            No insercao = new No(chave);
+
+            if (tabela[i].proximo != null && tabela[i].proximo.chave < chave) {
+                No atual = tabela[i].proximo;
+
+                while (atual.proximo != null && atual.proximo.chave < chave) {
+                    atual = atual.proximo;
+                }
+
+                insercao.mudarProximo(atual.proximo);
+                atual.mudarProximo(insercao);
+            } else {
+                insercao.mudarProximo(tabela[i].proximo);
+                tabela[i].mudarProximo(insercao);
+            }
 
 		} 
         
@@ -78,11 +80,20 @@ class tabelaHashEcd {
 	
 	int buscaEcd(int chave) {
 		int i = funcaoHash(chave);
-		if (tabela[i].chave == -1) {
-			return -1;
-		} else {
+		if (tabela[i].chave == chave) {
 			return i;
 		}
+		No atual = tabela[i].proximo;
+		int posicao = 1;
+		while (atual != null) {
+			if (atual.chave == chave) {
+                System.out.print("Posição na lista: " + posicao + " | ");
+                return i;
+			}
+			atual = atual.proximo;
+			posicao++;
+		}
+		return -1;
 	}
 	
 	void exibeTabela() {
@@ -90,8 +101,10 @@ class tabelaHashEcd {
 			System.out.println("Entrada: " + i + " | " + tabela[i].chave + " | ");
             if (tabela[i].proximo != null) {
                 System.out.print("Lista atrelada: ");
-                for (int j = 0; j < tabela[i].proximo.length; j++) {
-                    System.out.print(" | " + tabela[i].proximo[j].chave);
+                No atual = tabela[i].proximo;
+                while (atual != null) {
+                    System.out.print(" | " + atual.chave);
+                    atual = atual.proximo;
                 }
             }
             System.out.println();
@@ -100,27 +113,60 @@ class tabelaHashEcd {
 	}
 
     void exibeInfo() {
-        No[] maiorLista = tabela[0].proximo;
+        No maiorLista = tabela[0].proximo;
+        int tamanhoMaior = 0;
+
+        for (No n = maiorLista; n != null; n = n.proximo) {
+            tamanhoMaior++;
+        }
 
         for (int i = 0; i < tabela.length; i++) {
             if (tabela[i].proximo != null) {
-                if (maiorLista.length <= tabela[i].proximo.length) {
+                int tamanhoAtual = 0;
+                for (No n = tabela[i].proximo; n != null; n = n.proximo) {
+                    tamanhoAtual++;
+                }
+                if (tamanhoMaior <= tamanhoAtual) {
                     maiorLista = tabela[i].proximo;
+                    tamanhoMaior = tamanhoAtual;
                 }
             }
         }
 
         System.out.println(" - MAIOR LISTA ENCONTRADA - ");
 
-        for (int j = 0; j < maiorLista.length; j++) {
-            System.out.print(" | " + maiorLista[j].chave);
+        for (No n = maiorLista; n != null; n = n.proximo) {
+            System.out.print(" | " + n.chave);
         }
 
-        // QUANTIDADE DE LISTA GERADAS
+        System.out.println();
 
-        // QUANTAS POSIÇÕES FICARAM VAZIAS
+        int listasGeradas = 0;
 
-        // TRÊS ÚLTIMOS VALORES
+        for (int k = 0; k < tabela.length; k++) {
+            if (tabela[k].chave != -1 && tabela[k].proximo != null) {
+                listasGeradas++;
+            }
+        }
+
+        System.out.println(" - NÚMERO DE LISTAS GERADAS: " + listasGeradas);
+
+        int posicoesVazias = 0;
+
+        for (int l = 0; l < tabela.length; l++) {
+            if (tabela[l].chave == -1) {
+                posicoesVazias++;
+            }
+        }
+
+        System.out.println(" - NÚMERO DE POSIÇÕES VAZIAS: " + posicoesVazias);
+
+        System.out.print(" - TRÊS ÚLTIMOS VALORES INSERIDOS: ");
+        for (int p = 0; p < ultimosValores.length; p++) {
+            System.out.print(" | " + ultimosValores[p]);
+        }
+
+        System.out.println();
 
     }
 
@@ -137,10 +183,12 @@ class HashEcd {
         tabela.exibeTabela();
 
         for (int i = 0; i < 1000; i++) {
-			tabela.insereEcd(random.nextInt(0, 100000));
+			tabela.insereEcd(random.nextInt(0, 100001));
 		}
 
         tabela.exibeTabela();    
+        System.out.println(tabela.buscaEcd(9099));
+        System.out.println(tabela.buscaEcd(87599));
         tabela.exibeInfo();
 
     }

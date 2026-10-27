@@ -86,13 +86,15 @@ class tabelaRehashing {
 		}
 
 		for (int i = 0; i < tabela.length; i++) {
-			for (int j = 0; j < maiores.length; j++) {
-				if (tabela[i].colisoes > maiores[j].colisoes) {
-					for (int k = maiores.length - 1; k > j; k--) {
-						maiores[k] = maiores[k - 1];
+			if (tabela[i].chave != -1) {
+				for (int j = 0; j < maiores.length; j++) {
+					if (tabela[i].colisoes > maiores[j].colisoes) {
+						for (int k = maiores.length - 1; k > j; k--) {
+							maiores[k] = maiores[k - 1];
+						}
+						maiores[j] = tabela[i];
+						break;
 					}
-					maiores[j] = tabela[i];
-					break;
 				}
 			}
 		}
@@ -126,9 +128,9 @@ public class Rehash {
 			tabela.insereRehashing(random.nextInt());
 		}
 		tabela.exibeTabela();
-		System.out.println(tabela.buscaHashing(1560601399));
-		System.out.println(tabela.buscaHashing(-731296268));
-		System.out.println(tabela.buscaHashing(-1));
+		System.out.println(tabela.buscaHashing(-904294969));
+		System.out.println(tabela.buscaHashing(-1188199969));
+		System.out.println(tabela.buscaHashing(-891694356));
 		tabela.tresMaiores();
 		tabela.posicoesLivres();
 
